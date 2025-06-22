@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import TradingDataModal from './TradingDataModal';
 
 const TradingDataVisualization = () => {
@@ -41,7 +41,7 @@ const TradingDataVisualization = () => {
   const itemsPerPage = 20;
 
   // Fetch data from MongoDB API
-  const fetchData = async (page = 1, search = '', currentFilters = {}) => {
+  const fetchData = useCallback(async (page = 1, search = '', currentFilters = {}) => {
     setLoading(true);
     try {
       const response = await fetch('/api/trading-data', {
@@ -89,12 +89,12 @@ const TradingDataVisualization = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   // Initial data load
   useEffect(() => {
     fetchData(1, '', {});
-  }, []);
+  }, [fetchData]);
 
   // Since we're using server-side pagination, we don't need client-side filtering
   const paginatedData = data; // Data is already filtered and paginated from server
@@ -107,13 +107,13 @@ const TradingDataVisualization = () => {
     }, 500); // 500ms debounce
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm]);
+  }, [searchTerm, filters, fetchData]);
 
   // Handle filter changes
   useEffect(() => {
     setCurrentPage(1); // Reset to first page on filter change
     fetchData(1, searchTerm, filters);
-  }, [filters]);
+  }, [filters, searchTerm, fetchData]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString();
@@ -191,7 +191,7 @@ const TradingDataVisualization = () => {
       <div className="mb-4 p-3 bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg">
         <div className="text-sm text-blue-300 flex items-center">
           <span className="mr-2">💡</span>
-          <strong>Tip:</strong> Click on any row or use the "View Details" button to see complete analysis with all indicators, strategies, and AI recommendations in a mobile-friendly view!
+          <strong>Tip:</strong> Click on any row to see complete analysis with all indicators, strategies, and AI recommendations in a mobile-friendly view!
         </div>
       </div>
       
