@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import TradingDataModal from './TradingDataModal';
 
 const TradingDataVisualization = () => {
   // State management
@@ -32,6 +33,10 @@ const TradingDataVisualization = () => {
     consensus: true,
     aiAnalysis: true
   });
+
+  // Modal state
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedData, setSelectedData] = useState(null);
 
   const itemsPerPage = 20;
 
@@ -151,6 +156,17 @@ const TradingDataVisualization = () => {
     fetchData(newPage, searchTerm, filters);
   };
 
+  // Modal functions
+  const openModal = (item) => {
+    setSelectedData(item);
+    setModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setModalOpen(false);
+    setSelectedData(null);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64 bg-gray-900 rounded-lg">
@@ -168,6 +184,14 @@ const TradingDataVisualization = () => {
         <h2 className="text-3xl font-bold text-white">📊 Trading Data Analysis Dashboard</h2>
         <div className="text-sm text-gray-300 bg-gray-800 px-3 py-1 rounded-lg">
           Total Records: <span className="text-blue-400">{totalCount}</span> | Current Page: <span className="text-green-400">{data.length}</span> items
+        </div>
+      </div>
+
+      {/* Instruction for users */}
+      <div className="mb-4 p-3 bg-blue-900 bg-opacity-30 border border-blue-700 rounded-lg">
+        <div className="text-sm text-blue-300 flex items-center">
+          <span className="mr-2">💡</span>
+          <strong>Tip:</strong> Click on any row or use the "View Details" button to see complete analysis with all indicators, strategies, and AI recommendations in a mobile-friendly view!
         </div>
       </div>
       
@@ -271,7 +295,12 @@ const TradingDataVisualization = () => {
           </thead>
           <tbody>
             {paginatedData.map((item, index) => (
-              <tr key={item._id.$oid || item._id} className={`hover:bg-gray-700 transition-colors ${index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-750'}`}>
+              <tr 
+                key={item._id.$oid || item._id} 
+                className={`hover:bg-gray-700 transition-colors cursor-pointer ${index % 2 === 0 ? 'bg-gray-800' : 'bg-gray-750'}`}
+                onClick={() => openModal(item)}
+                title="Click to view detailed analysis"
+              >
                 {visibleColumns.timestamp && (
                   <td className="border-b border-gray-600 px-4 py-4 text-sm text-gray-300">
                     {formatDate(item.timestamp.$date || item.timestamp)}
@@ -373,6 +402,8 @@ const TradingDataVisualization = () => {
                     </div>
                   </td>
                 )}
+
+  
               </tr>
             ))}
           </tbody>
@@ -434,6 +465,13 @@ const TradingDataVisualization = () => {
           </div>
         </div>
       )}
+
+      {/* Trading Data Modal */}
+      <TradingDataModal 
+        isOpen={modalOpen}
+        onClose={closeModal}
+        data={selectedData}
+      />
     </div>
   );
 };
