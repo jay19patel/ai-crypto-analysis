@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import TradingDataModal from '../components/TradingDataModal';
 
 const AccountPage = () => {
   const [accountData, setAccountData] = useState(null);
@@ -11,6 +12,10 @@ const AccountPage = () => {
   const [closedPositionsPagination, setClosedPositionsPagination] = useState({});
   const [uniqueValues, setUniqueValues] = useState({ symbols: [], positionTypes: [] });
   const [loading, setLoading] = useState(true);
+  
+  // Modal state
+  const [selectedPosition, setSelectedPosition] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Filters and pagination
   const [closedPage, setClosedPage] = useState(1);
@@ -136,7 +141,9 @@ const AccountPage = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString();
+    if (!dateString) return '';
+    const date = new Date(dateString.$date || dateString);
+    return date.toLocaleString();
   };
 
   const getPositionTypeColor = (type) => {
@@ -157,6 +164,12 @@ const AccountPage = () => {
       maxPnl: ''
     });
     setClosedPage(1);
+  };
+
+  // Add this function to handle position clicks
+  const handlePositionClick = (position) => {
+    setSelectedPosition(position);
+    setIsModalOpen(true);
   };
 
   if (loading && !accountData) {
@@ -275,48 +288,64 @@ const AccountPage = () => {
 
         {/* Open Positions */}
         <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-700">
-          <h2 className="text-2xl font-bold text-white mb-4">🔄 Open Positions</h2>
-          
-          {openPositions.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400 text-lg">📭 No open positions found</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-600">
-                    <th className="text-left text-gray-300 font-medium py-3 px-2">Symbol</th>
-                    <th className="text-left text-gray-300 font-medium py-3 px-2">Type</th>
-                    <th className="text-left text-gray-300 font-medium py-3 px-2">Entry Price</th>
-                    <th className="text-left text-gray-300 font-medium py-3 px-2">Quantity</th>
-                    <th className="text-left text-gray-300 font-medium py-3 px-2">Invested</th>
-                    <th className="text-left text-gray-300 font-medium py-3 px-2">P&L</th>
-                    <th className="text-left text-gray-300 font-medium py-3 px-2">Entry Time</th>
+          <div className="flex items-center mb-4">
+            <h2 className="text-2xl font-bold text-white mr-3">📈 Open Positions ({openPositions.length})</h2>
+            {loading && (
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+            )}
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-gray-300">
+              <thead className="text-sm text-gray-400 border-b border-gray-700">
+                <tr>
+                  <th className="py-3 px-4">Symbol</th>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4">Entry Price</th>
+                  <th className="py-3 px-4">Stop Loss</th>
+                  <th className="py-3 px-4">Target</th>
+                  <th className="py-3 px-4">Quantity</th>
+                  <th className="py-3 px-4">Invested</th>
+                  <th className="py-3 px-4">P&L</th>
+                  <th className="py-3 px-4">Strategy</th>
+                  <th className="py-3 px-4">Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {openPositions.map((position) => (
+                  <tr 
+                    key={position._id} 
+                    className="border-b border-gray-700 hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={() => handlePositionClick(position)}
+                  >
+                    <td className="py-3 px-4 font-medium">{position.symbol}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded text-sm ${getPositionTypeColor(position.position_type)}`}>
+                        {position.position_type}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">{formatCurrency(position.entry_price)}</td>
+                    <td className="py-3 px-4 text-red-400">{formatCurrency(position.stop_loss)}</td>
+                    <td className="py-3 px-4 text-green-400">{formatCurrency(position.target)}</td>
+                    <td className="py-3 px-4">{position.quantity?.toFixed(8)}</td>
+                    <td className="py-3 px-4">{formatCurrency(position.invested_amount)}</td>
+                    <td className={`py-3 px-4 ${getPnlColor(position.pnl)}`}>
+                      {formatCurrency(position.pnl)}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-400">{position.strategy_name}</td>
+                    <td className="py-3 px-4 text-sm text-gray-400">{position.holding_time || formatDate(position.entry_time)}</td>
                   </tr>
-                </thead>
-                <tbody>
-                  {openPositions.map((position) => (
-                    <tr key={position._id} className="border-b border-gray-700 hover:bg-gray-700">
-                      <td className="py-3 px-2 text-white font-medium">{position.symbol}</td>
-                      <td className="py-3 px-2">
-                        <span className={`px-2 py-1 rounded text-xs ${getPositionTypeColor(position.position_type)}`}>
-                          {position.position_type}
-                        </span>
-                      </td>
-                      <td className="py-3 px-2 text-gray-300">{formatCurrency(position.entry_price)}</td>
-                      <td className="py-3 px-2 text-gray-300">{position.quantity?.toFixed(6)}</td>
-                      <td className="py-3 px-2 text-gray-300">{formatCurrency(position.invested_amount)}</td>
-                      <td className={`py-3 px-2 font-medium ${getPnlColor(position.pnl)}`}>
-                        {formatCurrency(position.pnl || 0)}
-                      </td>
-                      <td className="py-3 px-2 text-gray-400 text-xs">{formatDate(position.entry_time)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                ))}
+                {openPositions.length === 0 && (
+                  <tr>
+                    <td colSpan="10" className="text-center py-4 text-gray-400">
+                      No open positions
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Closed Positions */}
@@ -394,77 +423,93 @@ const AccountPage = () => {
           </div>
 
           {/* Closed Positions Table */}
-          {closedPositions.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-400 text-lg">📭 No closed positions found for the selected filters.</p>
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-600">
-                      <th className="text-left text-gray-300 font-medium py-3 px-2">Symbol</th>
-                      <th className="text-left text-gray-300 font-medium py-3 px-2">Type</th>
-                      <th className="text-left text-gray-300 font-medium py-3 px-2">Entry Price</th>
-                      <th className="text-left text-gray-300 font-medium py-3 px-2">Exit Price</th>
-                      <th className="text-left text-gray-300 font-medium py-3 px-2">Quantity</th>
-                      <th className="text-left text-gray-300 font-medium py-3 px-2">P&L</th>
-                      <th className="text-left text-gray-300 font-medium py-3 px-2">Holding Time</th>
-                      <th className="text-left text-gray-300 font-medium py-3 px-2">Strategy</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {closedPositions.map((position) => (
-                      <tr key={position._id} className="border-b border-gray-700 hover:bg-gray-700">
-                        <td className="py-3 px-2 text-white font-medium">{position.symbol}</td>
-                        <td className="py-3 px-2">
-                          <span className={`px-2 py-1 rounded text-xs ${getPositionTypeColor(position.position_type)}`}>
-                            {position.position_type}
-                          </span>
-                        </td>
-                        <td className="py-3 px-2 text-gray-300">{formatCurrency(position.entry_price)}</td>
-                        <td className="py-3 px-2 text-gray-300">{formatCurrency(position.exit_price)}</td>
-                        <td className="py-3 px-2 text-gray-300">{position.quantity?.toFixed(6)}</td>
-                        <td className={`py-3 px-2 font-medium ${getPnlColor(position.pnl)}`}>
-                          {formatCurrency(position.pnl)}
-                        </td>
-                        <td className="py-3 px-2 text-gray-400">{position.holding_time}</td>
-                        <td className="py-3 px-2 text-gray-400 text-xs">{position.strategy_name}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full text-left text-gray-300">
+              <thead className="text-sm text-gray-400 border-b border-gray-700">
+                <tr>
+                  <th className="py-3 px-4">Symbol</th>
+                  <th className="py-3 px-4">Type</th>
+                  <th className="py-3 px-4">Entry Price</th>
+                  <th className="py-3 px-4">Exit Price</th>
+                  <th className="py-3 px-4">Quantity</th>
+                  <th className="py-3 px-4">Invested</th>
+                  <th className="py-3 px-4">P&L</th>
+                  <th className="py-3 px-4">Strategy</th>
+                  <th className="py-3 px-4">Holding Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {closedPositions.map((position) => (
+                  <tr 
+                    key={position._id} 
+                    className="border-b border-gray-700 hover:bg-gray-700 cursor-pointer transition-colors"
+                    onClick={() => handlePositionClick(position)}
+                  >
+                    <td className="py-3 px-4 font-medium">{position.symbol}</td>
+                    <td className="py-3 px-4">
+                      <span className={`px-2 py-1 rounded text-sm ${getPositionTypeColor(position.position_type)}`}>
+                        {position.position_type}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4">{formatCurrency(position.entry_price)}</td>
+                    <td className="py-3 px-4">{formatCurrency(position.exit_price)}</td>
+                    <td className="py-3 px-4">{position.quantity?.toFixed(8)}</td>
+                    <td className="py-3 px-4">{formatCurrency(position.invested_amount)}</td>
+                    <td className={`py-3 px-4 ${getPnlColor(position.pnl)}`}>
+                      {formatCurrency(position.pnl)}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-400">{position.strategy_name}</td>
+                    <td className="py-3 px-4 text-sm text-gray-400">{position.holding_time}</td>
+                  </tr>
+                ))}
+                {closedPositions.length === 0 && (
+                  <tr>
+                    <td colSpan="9" className="text-center py-4 text-gray-400">
+                      No closed positions found
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-              {/* Pagination */}
-              {closedPositionsPagination && closedPositionsPagination.totalPages > 1 && (
-                <div className="mt-6 flex justify-center items-center space-x-2">
-                  <button
-                    onClick={() => setClosedPage(p => Math.max(1, p - 1))}
-                    disabled={closedPage === 1}
-                    className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg transition-colors"
-                  >
-                    Previous
-                  </button>
-                  
-                  <span className="text-gray-400">
-                    Page {closedPage} of {closedPositionsPagination.totalPages}
-                  </span>
-                  
-                  <button
-                    onClick={() => setClosedPage(p => Math.min(closedPositionsPagination.totalPages, p + 1))}
-                    disabled={closedPage === closedPositionsPagination.totalPages}
-                    className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg transition-colors"
-                  >
-                    Next
-                  </button>
-                </div>
-              )}
-            </>
+          {/* Pagination */}
+          {closedPositionsPagination && closedPositionsPagination.totalPages > 1 && (
+            <div className="mt-6 flex justify-center items-center space-x-2">
+              <button
+                onClick={() => setClosedPage(p => Math.max(1, p - 1))}
+                disabled={closedPage === 1}
+                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg transition-colors"
+              >
+                Previous
+              </button>
+              
+              <span className="text-gray-400">
+                Page {closedPage} of {closedPositionsPagination.totalPages}
+              </span>
+              
+              <button
+                onClick={() => setClosedPage(p => Math.min(closedPositionsPagination.totalPages, p + 1))}
+                disabled={closedPage === closedPositionsPagination.totalPages}
+                className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:cursor-not-allowed text-white px-3 py-2 rounded-lg transition-colors"
+              >
+                Next
+              </button>
+            </div>
           )}
         </div>
       </div>
+
+      {/* Position Details Modal */}
+      <TradingDataModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedPosition(null);
+        }}
+        data={selectedPosition}
+        type="position"
+      />
     </div>
   );
 };
