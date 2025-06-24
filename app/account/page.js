@@ -222,19 +222,17 @@ const AccountPage = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-gray-700 p-4 rounded-lg">
+              {/* Primary Account Information */}
+              <div className="bg-gray-700 p-4 rounded-lg border-l-4 border-green-500">
                 <h3 className="text-gray-400 text-sm font-medium mb-1">Current Balance</h3>
                 <p className="text-green-400 text-lg font-semibold">{formatCurrency(accountData.current_balance)}</p>
+                <p className="text-xs text-gray-500 mt-1">out of {formatCurrency(accountData.initial_balance)}</p>
               </div>
 
-              <div className="bg-gray-700 p-4 rounded-lg">
+              <div className="bg-gray-700 p-4 rounded-lg border-l-4 border-blue-500">
                 <h3 className="text-gray-400 text-sm font-medium mb-1">Equity</h3>
                 <p className="text-blue-400 text-lg font-semibold">{formatCurrency(accountData.equity)}</p>
-              </div>
-              
-              <div className="bg-gray-700 p-4 rounded-lg">
-                <h3 className="text-gray-400 text-sm font-medium mb-1">Initial Balance</h3>
-                <p className="text-gray-300 text-lg font-semibold">{formatCurrency(accountData.initial_balance)}</p>
+                <p className="text-xs text-gray-500 mt-1">Total account value</p>
               </div>
 
               <div className="bg-gray-700 p-4 rounded-lg">
@@ -242,13 +240,31 @@ const AccountPage = () => {
                 <p className={`text-lg font-semibold ${getPnlColor(accountGrowth)}`}>
                   {accountGrowth.toFixed(2)}%
                 </p>
+                <p className="text-xs text-gray-500 mt-1">Since inception</p>
               </div>
-              
+
+              {/* Margin & Risk Management */}
+              <div className="bg-gray-700 p-4 rounded-lg border-l-4 border-purple-500">
+                <h3 className="text-gray-400 text-sm font-medium mb-1">Margin Status</h3>
+                <p className="text-lg font-semibold">
+                  <span className="text-purple-400">{formatCurrency(accountData.available_margin)}</span> / <span className="text-orange-400">{formatCurrency(accountData.total_margin_used)}</span>
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Available / Used</p>
+              </div>
+
+              <div className="bg-gray-700 p-4 rounded-lg">
+                <h3 className="text-gray-400 text-sm font-medium mb-1">Max Leverage</h3>
+                <p className="text-cyan-400 text-lg font-semibold">{accountData.max_leverage}:1</p>
+                <p className="text-xs text-gray-500 mt-1">Maximum allowed</p>
+              </div>
+
+              {/* P&L Information */}
               <div className="bg-gray-700 p-4 rounded-lg">
                 <h3 className="text-gray-400 text-sm font-medium mb-1">Realized P&L</h3>
                 <p className={`text-lg font-semibold ${getPnlColor(accountData.total_profit)}`}>
                   {formatCurrency(accountData.total_profit)}
                 </p>
+                <p className="text-xs text-gray-500 mt-1">Closed positions</p>
               </div>
 
               <div className="bg-gray-700 p-4 rounded-lg">
@@ -256,18 +272,22 @@ const AccountPage = () => {
                 <p className={`text-lg font-semibold ${getPnlColor(unrealizedPnl)}`}>
                   {formatCurrency(unrealizedPnl)}
                 </p>
+                <p className="text-xs text-gray-500 mt-1">Open positions</p>
               </div>
 
+              {/* Trading Statistics */}
               <div className="bg-gray-700 p-4 rounded-lg">
                 <h3 className="text-gray-400 text-sm font-medium mb-1">Open / Closed Trades</h3>
                 <p className="text-white text-lg font-semibold">
                   <span className="text-blue-400">{openPositions.length}</span> / <span>{accountData.total_trades}</span>
                 </p>
+                <p className="text-xs text-gray-500 mt-1">Active / Total</p>
               </div>
               
               <div className="bg-gray-700 p-4 rounded-lg">
                 <h3 className="text-gray-400 text-sm font-medium mb-1">Win Rate</h3>
                 <p className="text-green-400 text-lg font-semibold">{(accountData.win_rate || 0).toFixed(2)}%</p>
+                <p className="text-xs text-gray-500 mt-1">Success ratio</p>
               </div>
               
               <div className="bg-gray-700 p-4 rounded-lg">
@@ -275,6 +295,7 @@ const AccountPage = () => {
                 <p className="text-yellow-400 text-lg font-semibold">
                   {accountData.daily_trades_count}/{accountData.daily_trades_limit}
                 </p>
+                <p className="text-xs text-gray-500 mt-1">Used / Limit</p>
               </div>
 
               {positionStats && (
@@ -284,12 +305,14 @@ const AccountPage = () => {
                     <p className="text-lg font-semibold">
                       <span className="text-green-400">{formatCurrency(positionStats.maxProfit)}</span> / <span className="text-red-400">{formatCurrency(positionStats.maxLoss)}</span>
                     </p>
+                    <p className="text-xs text-gray-500 mt-1">Single trade extremes</p>
                   </div>
                   <div className="bg-gray-700 p-4 rounded-lg">
                     <h3 className="text-gray-400 text-sm font-medium mb-1">Total Profit / Loss</h3>
                     <p className="text-lg font-semibold">
                       <span className="text-green-400">{formatCurrency(positionStats.totalPositivePnl)}</span> / <span className="text-red-400">{formatCurrency(positionStats.totalNegativePnl)}</span>
                     </p>
+                    <p className="text-xs text-gray-500 mt-1">Cumulative gains / losses</p>
                   </div>
                 </>
               )}
@@ -313,10 +336,11 @@ const AccountPage = () => {
                   <th className="py-3 px-4">Symbol</th>
                   <th className="py-3 px-4">Type</th>
                   <th className="py-3 px-4">Entry Price</th>
+                  <th className="py-3 px-4">Leverage</th>
+                  <th className="py-3 px-4">Margin Used</th>
                   <th className="py-3 px-4">Stop Loss</th>
                   <th className="py-3 px-4">Target</th>
                   <th className="py-3 px-4">Quantity</th>
-                  <th className="py-3 px-4">Invested</th>
                   <th className="py-3 px-4">P&L</th>
                   <th className="py-3 px-4">Strategy</th>
                   <th className="py-3 px-4">Time</th>
@@ -339,10 +363,16 @@ const AccountPage = () => {
                       <div>{formatCurrency(position.entry_price)}</div>
                       <div className="text-xs text-gray-400">{formatDate(position.entry_time)}</div>
                     </td>
+                    <td className="py-3 px-4">
+                      <span className="text-cyan-400 font-semibold">{position.leverage}:1</span>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div>{formatCurrency(position.margin_used)}</div>
+                      <div className="text-xs text-gray-400">Margin</div>
+                    </td>
                     <td className="py-3 px-4 text-red-400">{formatCurrency(position.stop_loss)}</td>
                     <td className="py-3 px-4 text-green-400">{formatCurrency(position.target)}</td>
                     <td className="py-3 px-4">{position.quantity?.toFixed(8)}</td>
-                    <td className="py-3 px-4">{formatCurrency(position.invested_amount)}</td>
                     <td className={`py-3 px-4 ${getPnlColor(position.pnl)}`}>
                       {formatCurrency(position.pnl)}
                     </td>
@@ -352,7 +382,7 @@ const AccountPage = () => {
                 ))}
                 {openPositions.length === 0 && (
                   <tr>
-                    <td colSpan="10" className="text-center py-4 text-gray-400">
+                    <td colSpan="11" className="text-center py-4 text-gray-400">
                       No open positions
                     </td>
                   </tr>

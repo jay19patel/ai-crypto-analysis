@@ -133,15 +133,62 @@ const TradingDataModal = ({ isOpen, onClose, data, type = 'analysis' }) => {
                   </div>
                 ) : (
                   <div className="p-3 bg-gray-700 rounded-lg border border-gray-600">
-                    <div className="text-sm text-gray-300">Invested Amount</div>
+                    <div className="text-sm text-gray-300">Quantity</div>
                     <div className="text-xl font-bold text-white">
-                      {formatCurrency(data.invested_amount)}
+                      {data.quantity?.toFixed(8)}
                     </div>
                     <div className="text-xs text-gray-400 mt-1">
-                      Quantity: {data.quantity?.toFixed(8)}
+                      Position size
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Leverage & Trading Details */}
+            <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+              <h3 className="text-xl font-semibold text-white mb-4">Leverage & Trading Details</h3>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-3 bg-cyan-900 rounded-lg border border-cyan-600">
+                  <div className="text-sm text-cyan-300">Leverage</div>
+                  <div className="text-xl font-bold text-cyan-400">
+                    {data.leverage}:1
+                  </div>
+                  <div className="text-sm text-cyan-300">
+                    Multiplier
+                  </div>
+                </div>
+
+                <div className="p-3 bg-purple-900 rounded-lg border border-purple-600">
+                  <div className="text-sm text-purple-300">Margin Used</div>
+                  <div className="text-xl font-bold text-purple-400">
+                    {formatCurrency(data.margin_used)}
+                  </div>
+                  <div className="text-sm text-purple-300">
+                    Required margin
+                  </div>
+                </div>
+
+                <div className="p-3 bg-orange-900 rounded-lg border border-orange-600">
+                  <div className="text-sm text-orange-300">Trading Fee</div>
+                  <div className="text-xl font-bold text-orange-400">
+                    {formatCurrency(data.trading_fee)}
+                  </div>
+                  <div className="text-sm text-orange-300">
+                    Commission
+                  </div>
+                </div>
+
+                <div className="p-3 bg-gray-700 rounded-lg border border-gray-600">
+                  <div className="text-sm text-gray-300">Invested Amount</div>
+                  <div className="text-xl font-bold text-white">
+                    {formatCurrency(data.invested_amount)}
+                  </div>
+                  <div className="text-xs text-gray-400 mt-1">
+                    Total position size
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -228,6 +275,12 @@ const TradingDataModal = ({ isOpen, onClose, data, type = 'analysis' }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-400">
                   <div>Created: {formatDate(data.created_at)}</div>
                   <div>Last Updated: {formatDate(data.updated_at)}</div>
+                  {data.analysis_id && (
+                    <div className="md:col-span-2">
+                      <span className="text-gray-400">Analysis ID:</span>
+                      <div className="text-gray-300 font-mono break-all text-xs mt-1">{data.analysis_id}</div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
