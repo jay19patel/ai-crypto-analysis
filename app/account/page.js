@@ -143,7 +143,18 @@ const AccountPage = () => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString.$date || dateString);
-    return date.toLocaleString();
+    // Convert to IST by adding 5 hours and 30 minutes
+    date.setTime(date.getTime() + (5.5 * 60 * 60 * 1000));
+    
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC'  // Use UTC since we manually adjusted the time
+    });
   };
 
   const getPositionTypeColor = (type) => {
@@ -324,7 +335,10 @@ const AccountPage = () => {
                         {position.position_type}
                       </span>
                     </td>
-                    <td className="py-3 px-4">{formatCurrency(position.entry_price)}</td>
+                    <td className="py-3 px-4">
+                      <div>{formatCurrency(position.entry_price)}</div>
+                      <div className="text-xs text-gray-400">{formatDate(position.entry_time)}</div>
+                    </td>
                     <td className="py-3 px-4 text-red-400">{formatCurrency(position.stop_loss)}</td>
                     <td className="py-3 px-4 text-green-400">{formatCurrency(position.target)}</td>
                     <td className="py-3 px-4">{position.quantity?.toFixed(8)}</td>
@@ -333,7 +347,7 @@ const AccountPage = () => {
                       {formatCurrency(position.pnl)}
                     </td>
                     <td className="py-3 px-4 text-sm text-gray-400">{position.strategy_name}</td>
-                    <td className="py-3 px-4 text-sm text-gray-400">{position.holding_time || formatDate(position.entry_time)}</td>
+                    <td className="py-3 px-4 text-sm text-gray-400">{position.holding_time}</td>
                   </tr>
                 ))}
                 {openPositions.length === 0 && (
@@ -451,8 +465,14 @@ const AccountPage = () => {
                         {position.position_type}
                       </span>
                     </td>
-                    <td className="py-3 px-4">{formatCurrency(position.entry_price)}</td>
-                    <td className="py-3 px-4">{formatCurrency(position.exit_price)}</td>
+                    <td className="py-3 px-4">
+                      <div>{formatCurrency(position.entry_price)}</div>
+                      <div className="text-xs text-gray-400">{formatDate(position.entry_time)}</div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div>{formatCurrency(position.exit_price)}</div>
+                      <div className="text-xs text-gray-400">{position.exit_time ? formatDate(position.exit_time) : '-'}</div>
+                    </td>
                     <td className="py-3 px-4">{position.quantity?.toFixed(8)}</td>
                     <td className="py-3 px-4">{formatCurrency(position.invested_amount)}</td>
                     <td className={`py-3 px-4 ${getPnlColor(position.pnl)}`}>

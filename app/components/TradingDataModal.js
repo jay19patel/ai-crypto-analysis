@@ -28,7 +28,18 @@ const TradingDataModal = ({ isOpen, onClose, data, type = 'analysis' }) => {
   const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString.$date || dateString);
-    return date.toLocaleString();
+    // Convert to IST by adding 5 hours and 30 minutes
+    date.setTime(date.getTime() + (5.5 * 60 * 60 * 1000));
+    
+    return date.toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC'  // Use UTC since we manually adjusted the time
+    });
   };
 
   const formatCurrency = (amount) => {
@@ -70,7 +81,7 @@ const TradingDataModal = ({ isOpen, onClose, data, type = 'analysis' }) => {
                   📊 {data.symbol} Position Details
                 </h2>
                 <p className="text-sm text-gray-400 mt-1">
-                  {formatDate(data.entry_time)} • {data.status}
+                  Status: {data.status} • {data.holding_time || 'Just opened'}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Press ESC or click outside to close</p>
               </div>
@@ -105,20 +116,32 @@ const TradingDataModal = ({ isOpen, onClose, data, type = 'analysis' }) => {
                   <div className="text-xl font-bold text-white">
                     {formatCurrency(data.entry_price)}
                   </div>
-                  <div className="text-sm text-gray-400">
-                    Quantity: {data.quantity?.toFixed(8)}
+                  <div className="text-xs text-gray-400 mt-1">
+                    Entry: {formatDate(data.entry_time)}
                   </div>
                 </div>
 
-                <div className="p-3 bg-gray-700 rounded-lg border border-gray-600">
-                  <div className="text-sm text-gray-300">Invested Amount</div>
-                  <div className="text-xl font-bold text-white">
-                    {formatCurrency(data.invested_amount)}
+                {data.exit_price ? (
+                  <div className="p-3 bg-gray-700 rounded-lg border border-gray-600">
+                    <div className="text-sm text-gray-300">Exit Price</div>
+                    <div className="text-xl font-bold text-white">
+                      {formatCurrency(data.exit_price)}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      Exit: {formatDate(data.exit_time)}
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-400">
-                    {data.holding_time ? `Holding: ${data.holding_time}` : ''}
+                ) : (
+                  <div className="p-3 bg-gray-700 rounded-lg border border-gray-600">
+                    <div className="text-sm text-gray-300">Invested Amount</div>
+                    <div className="text-xl font-bold text-white">
+                      {formatCurrency(data.invested_amount)}
+                    </div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      Quantity: {data.quantity?.toFixed(8)}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             </div>
 
