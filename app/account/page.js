@@ -221,11 +221,19 @@ const AccountPage = () => {
         {/* Account Summary */}
         {accountData && (
           <div className="bg-gray-800 rounded-lg p-6 mb-8 border border-gray-700">
-            <div className="flex items-center mb-4">
-              <h2 className="text-2xl font-bold text-white mr-3">📊 Account Summary</h2>
-              {loading && (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-              )}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <h2 className="text-2xl font-bold text-white mr-3">📊 Account Summary</h2>
+                {loading && (
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                )}
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className={`w-3 h-3 rounded-full ${accountData.algo_status ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                <span className={`text-sm font-medium ${accountData.algo_status ? 'text-green-400' : 'text-red-400'}`}>
+                  {accountData.algo_status ? 'Online' : 'Offline'}
+                </span>
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -246,11 +254,9 @@ const AccountPage = () => {
 
               {/* Margin & Risk Management */}
               <div className="bg-gray-700 p-4 rounded-lg border-l-4 border-purple-500">
-                <h3 className="text-gray-400 text-sm font-medium mb-1">Margin Status</h3>
-                <p className="text-lg font-semibold">
-                  <span className="text-purple-400">{formatCurrency(accountData.available_margin)}</span> / <span className="text-orange-400">{formatCurrency(accountData.total_margin_used)}</span>
-                </p>
-                <p className="text-xs text-gray-500 mt-1">Available / Used</p>
+                <h3 className="text-gray-400 text-sm font-medium mb-1">Margin Used</h3>
+                <p className="text-orange-400 text-lg font-semibold">{formatCurrency(accountData.total_margin_used)}</p>
+                <p className="text-xs text-gray-500 mt-1">Currently utilized</p>
               </div>
 
               <div className="bg-gray-700 p-4 rounded-lg">
@@ -320,7 +326,7 @@ const AccountPage = () => {
 
               <div className="bg-gray-700 p-4 rounded-lg border-l-4 border-orange-500">
                 <h3 className="text-gray-400 text-sm font-medium mb-1">Brokerage Charge</h3>
-                <p className="text-orange-400 text-lg font-semibold">{formatCurrency(accountData.broker_trading)}</p>
+                <p className="text-orange-400 text-lg font-semibold">{formatCurrency(accountData.brokerage_charges)}</p>
                 <p className="text-xs text-gray-500 mt-1">Total brokerage fees</p>
               </div>
             </div>
