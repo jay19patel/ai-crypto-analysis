@@ -31,7 +31,8 @@ const TradingDataVisualization = () => {
     indicators: true,
     strategies: true,
     consensus: true,
-    aiAnalysis: true
+    aiAnalysis: true,
+    ohlc: true
   });
 
   // Modal state
@@ -39,6 +40,8 @@ const TradingDataVisualization = () => {
   const [selectedData, setSelectedData] = useState(null);
 
   const itemsPerPage = 20;
+
+  const [documentId, setDocumentId] = useState('');
 
   // Fetch data from MongoDB API
   const fetchData = useCallback(async (page = 1, search = '', currentFilters = {}) => {
@@ -200,11 +203,17 @@ const TradingDataVisualization = () => {
         <div className="flex flex-col md:flex-row gap-4">
           <input
             type="text"
-            placeholder="🔍 Search by symbol or summary..."
+            placeholder="🔍 Search by Document ID..."
             className="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={documentId}
+            onChange={(e) => setDocumentId(e.target.value)}
           />
+          <button
+            onClick={() => fetchData(1, documentId, filters)}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          >
+            🔍 Search
+          </button>
           <button
             onClick={resetFilters}
             className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
@@ -287,6 +296,7 @@ const TradingDataVisualization = () => {
             <tr className="bg-gray-700">
               {visibleColumns.timestamp && <th className="border-b border-gray-600 px-4 py-4 text-left font-semibold text-white">⏰ Timestamp</th>}
               {visibleColumns.symbol && <th className="border-b border-gray-600 px-4 py-4 text-left font-semibold text-white">📈 Symbol Info</th>}
+              {visibleColumns.ohlc && <th className="border-b border-gray-600 px-4 py-4 text-left font-semibold text-white">📈 OHLC</th>}
               {visibleColumns.indicators && <th className="border-b border-gray-600 px-4 py-4 text-left font-semibold text-white">📊 Key Indicators</th>}
               {visibleColumns.strategies && <th className="border-b border-gray-600 px-4 py-4 text-left font-semibold text-white">🎯 Trading Strategies</th>}
               {visibleColumns.consensus && <th className="border-b border-gray-600 px-4 py-4 text-left font-semibold text-white">🏛️ Market Consensus</th>}
@@ -311,6 +321,28 @@ const TradingDataVisualization = () => {
                   <td className="border-b border-gray-600 px-4 py-4">
                     <div className="font-semibold text-lg text-blue-400">{item.analysis_data.symbol}</div>
                     <div className="text-sm text-gray-400">{item.analysis_data.resolution} • {item.analysis_data.days} days</div>
+                  </td>
+                )}
+                {visibleColumns.ohlc && (
+                  <td className="border-b border-gray-600 px-4 py-4">
+                    <div className="space-y-1 max-h-40 overflow-y-auto bg-gray-700 p-2 rounded">
+                      <div className="text-xs flex justify-between items-center">
+                        <span className="font-medium text-gray-300">Open:</span>
+                        <span className="ml-2 text-gray-300 font-semibold">{item.analysis_data.latest_data.open}</span>
+                      </div>
+                      <div className="text-xs flex justify-between items-center">
+                        <span className="font-medium text-gray-300">High:</span>
+                        <span className="ml-2 text-gray-300 font-semibold">{item.analysis_data.latest_data.high}</span>
+                      </div>
+                      <div className="text-xs flex justify-between items-center">
+                        <span className="font-medium text-gray-300">Low:</span>
+                        <span className="ml-2 text-gray-300 font-semibold">{item.analysis_data.latest_data.low}</span>
+                      </div>
+                      <div className="text-xs flex justify-between items-center">
+                        <span className="font-medium text-gray-300">Close:</span>
+                        <span className="ml-2 text-gray-300 font-semibold">{item.analysis_data.latest_data.close}</span>
+                      </div>
+                    </div>
                   </td>
                 )}
                 
@@ -402,8 +434,6 @@ const TradingDataVisualization = () => {
                     </div>
                   </td>
                 )}
-
-  
               </tr>
             ))}
           </tbody>

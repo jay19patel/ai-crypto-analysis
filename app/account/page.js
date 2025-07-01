@@ -121,9 +121,16 @@ const AccountPage = () => {
     fetchPositions('CLOSED', 1);
   }, [filters]);
 
-  const unrealizedPnl = useMemo(() => {
+  const calculateRealizedPnl = useMemo(() => {
+    return closedPositions.reduce((acc, pos) => acc + (pos.pnl || 0), 0);
+  }, [closedPositions]);
+
+  const calculateUnrealizedPnl = useMemo(() => {
     return openPositions.reduce((acc, pos) => acc + (pos.pnl || 0), 0);
   }, [openPositions]);
+
+  const maxProfit = positionStats ? Math.max(0, positionStats.maxProfit) : 0;
+  const maxLoss = positionStats ? Math.min(0, positionStats.maxLoss) : 0;
 
   const accountGrowth = useMemo(() => {
     if (accountData && accountData.initial_balance > 0) {
@@ -229,12 +236,6 @@ const AccountPage = () => {
                 <p className="text-xs text-gray-500 mt-1">out of {formatCurrency(accountData.initial_balance)}</p>
               </div>
 
-              <div className="bg-gray-700 p-4 rounded-lg border-l-4 border-blue-500">
-                <h3 className="text-gray-400 text-sm font-medium mb-1">Equity</h3>
-                <p className="text-blue-400 text-lg font-semibold">{formatCurrency(accountData.equity)}</p>
-                <p className="text-xs text-gray-500 mt-1">Total account value</p>
-              </div>
-
               <div className="bg-gray-700 p-4 rounded-lg">
                 <h3 className="text-gray-400 text-sm font-medium mb-1">Account Growth</h3>
                 <p className={`text-lg font-semibold ${getPnlColor(accountGrowth)}`}>
@@ -261,16 +262,16 @@ const AccountPage = () => {
               {/* P&L Information */}
               <div className="bg-gray-700 p-4 rounded-lg">
                 <h3 className="text-gray-400 text-sm font-medium mb-1">Realized P&L</h3>
-                <p className={`text-lg font-semibold ${getPnlColor(accountData.total_profit)}`}>
-                  {formatCurrency(accountData.total_profit)}
+                <p className={`text-lg font-semibold ${getPnlColor(calculateRealizedPnl)}`}>
+                  {formatCurrency(calculateRealizedPnl)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Closed positions</p>
               </div>
 
               <div className="bg-gray-700 p-4 rounded-lg">
                 <h3 className="text-gray-400 text-sm font-medium mb-1">Unrealized P&L</h3>
-                <p className={`text-lg font-semibold ${getPnlColor(unrealizedPnl)}`}>
-                  {formatCurrency(unrealizedPnl)}
+                <p className={`text-lg font-semibold ${getPnlColor(calculateUnrealizedPnl)}`}>
+                  {formatCurrency(calculateUnrealizedPnl)}
                 </p>
                 <p className="text-xs text-gray-500 mt-1">Open positions</p>
               </div>
@@ -303,7 +304,7 @@ const AccountPage = () => {
                   <div className="bg-gray-700 p-4 rounded-lg">
                     <h3 className="text-gray-400 text-sm font-medium mb-1">Max Profit / Loss</h3>
                     <p className="text-lg font-semibold">
-                      <span className="text-green-400">{formatCurrency(positionStats.maxProfit)}</span> / <span className="text-red-400">{formatCurrency(positionStats.maxLoss)}</span>
+                      <span className="text-green-400">{formatCurrency(maxProfit)}</span> / <span className="text-red-400">{formatCurrency(maxLoss)}</span>
                     </p>
                     <p className="text-xs text-gray-500 mt-1">Single trade extremes</p>
                   </div>
@@ -316,6 +317,12 @@ const AccountPage = () => {
                   </div>
                 </>
               )}
+
+              <div className="bg-gray-700 p-4 rounded-lg border-l-4 border-orange-500">
+                <h3 className="text-gray-400 text-sm font-medium mb-1">Brokerage Charge</h3>
+                <p className="text-orange-400 text-lg font-semibold">{formatCurrency(accountData.broker_trading)}</p>
+                <p className="text-xs text-gray-500 mt-1">Total brokerage fees</p>
+              </div>
             </div>
           </div>
         )}

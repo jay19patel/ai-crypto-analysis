@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '../../lib/mongodb';
+import { ObjectId } from 'mongodb';
 
 export async function POST(request) {
   try {
@@ -21,7 +22,9 @@ export async function POST(request) {
     const query = {};
 
     // Add search functionality
-    if (searchTerm && searchTerm.trim() !== '') {
+    if (ObjectId.isValid(searchTerm)) {
+      query._id = new ObjectId(searchTerm);
+    } else if (searchTerm && searchTerm.trim() !== '') {
       query.$or = [
         { 'analysis_data.symbol': { $regex: searchTerm, $options: 'i' } },
         { 'analysis_data.ai_analysis.summary': { $regex: searchTerm, $options: 'i' } }
